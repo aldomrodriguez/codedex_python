@@ -46,13 +46,11 @@ tie_messages = [
     "A tie? What are the odds?! 🎲"
 ]
 
-
 print("==================================================================")
 print("=                                                                =")
 print("= ¡Welcome to the Rock✊ Paper🤚 Scissor✌️ Lizard🦎 Spock🖖 game! =")
 print("=                                                                =")
 print("==================================================================")
-
 
 
 while True:
@@ -86,8 +84,6 @@ if selection == 2:
     
 
 player = input("Whats your name? ")
-
-
 
         
 while True:
@@ -128,7 +124,6 @@ while True:
         elif cpu_choice == 3:
             print(f"{win_messages[messages]} {player} win!")
         else:
-            
             print(f"{lose_messages[messages]} CPU win!")
 
     elif player_choice == 1:    #Paper🤚
@@ -139,7 +134,6 @@ while True:
         elif cpu_choice == 3:
             print(f"{lose_messages[messages]} CPU win!")
         else:
-            
             print(f"{win_messages[messages]} {player} win!")
     
     elif player_choice == 2:    #Scissors✌️
@@ -150,7 +144,6 @@ while True:
         elif cpu_choice == 3:
             print(f"{win_messages[messages]} {player} win!")
         else:
-            
             print(f"{lose_messages[messages]} CPU win!")
 
     elif player_choice == 3:    #Lizard🦎
@@ -161,7 +154,6 @@ while True:
         elif cpu_choice == 2:
             print(f"{lose_messages[messages]} CPU win!")
         else:
-            
             print(f"{win_messages[messages]} {player} win!")
             
     elif player_choice == 4:    #Spock🖖
@@ -172,16 +164,11 @@ while True:
         elif cpu_choice == 2:
             print(f"{win_messages[messages]} {player} win!")
         else:
-            
             print(f"{lose_messages[messages]} CPU win!")
-    
-    
+   
     
     play_again = int(input("Do you want to play again? Enter 1 to play again or 2 to quit: "))
     if play_again == 2:
         print("Thanks for playing! Goodbye!")
         break
- 
-#SI ELIJO OTRA COSA QUE NO SEA UN NUMERO VALIDO?
-#DAR DINAMISMO, ANADIENDIENDO FRASES QUE ACOMPANEN TANTO AL GANAR COMO AL PERDER, FELICITANDO, BURLANDOSE O PROVOCANDO.
-#PROPONER JUGAR OTRA VEZ, METER EL JUEGO EN UN BUCLE
+
