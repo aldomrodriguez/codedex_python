@@ -1,396 +1,308 @@
+![Title Image](https://raw.githubusercontent.com/codedex-io/projects/main/projects/build-a-discord-bot-with-python/header.png)
 
-![Título Imagen](https://raw.githubusercontent.com/codedex-io/projects/main/projects/generate-a-blog-with-openai/header.png)
+**Prerequisites:** Python fundamentals  
+**Versions:** Python 3.10  
+**Read Time:** 45 minutes
 
-**Requisitos previos:** Fundamentos de python  
-**Versiones:** Python 3.10, python-dotenv 0.21.0, openai 1.0.0  
-**Tiempo de Lectura:** 60 Minutos
+## [#](https://www.codedex.io/projects/build-a-discord-bot-with-python#introduction) Introduction
 
-## [#](https://www.codedex.io/projects/generate-a-blog-with-openai#introduction) Introducción
+In this tutorial, we'll learn how to set up your Python programming environment, create and register a bot using [Discord Developer Portal](https://discord.com/developers/), and write a few lines of Python code to respond to users' messages in Discord. We'll also provide a breakdown of each line of code for those who want to get a deeper understanding of how it all works.
 
-[Inteligencia Artificial (IA)](https://en.wikipedia.org/wiki/Artificial_intelligence) se está convirtiendo en la próxima gran tecnología para aprovechar. Desde refrigeradores inteligentes hasta autos sin conductor, la IA se implementa en casi todo lo que se te ocurra. Así que adelantémonos y aprendamos cómo podemos aprovechar el poder de la IA con Python y OpenAI.
+The Discord bot that we are going to build will listen for the keyword `$meme` and responds with a random meme from Reddit.
 
-En este tutorial, aprenderemos cómo crear un generador de blogs con [GPT-3](https://openai.com/api/), un modelo de IA proporcionado por [OpenAI](https://www.openai.com/). El generador leerá un tema para hablar como la entrada, y GPT-3 nos devolverá un párrafo sobre ese tema como la salida.
+The final result will look like this:
 
-Entonces AI estará "escribiendo" cosas para nosotros. ¡Diga adiós al bloque del escritor!
+![Example meme](https://raw.githubusercontent.com/codedex-io/projects/main/projects/build-a-discord-bot-with-python/demo.gif)
 
-¡Pero espera, espera! ¡Inteligencia artificial?! ¡Modelos de IA?! Esto debe ser complicado de codificar. 😵
+Let's dive in!
 
-![meme](https://raw.githubusercontent.com/codedex-io/projects/main/projects/generate-a-blog-with-openai/calculation-math.gif)
+## [#](https://www.codedex.io/projects/build-a-discord-bot-with-python#requirements) Requirements
 
-No, es más fácil de lo que piensas. ¡Se necesitan alrededor de 25 líneas de código Python!
+Before we get started, you will need a few things if you don't have them already:
 
-El resultado final se verá así:
+-   [Python 3](https://www.python.org/downloads/) installed.
+-   [pip](https://pip.pypa.io/en/stable/installation/) (package installer) installed.
+-   A Discord account.
+-   A Discord server with "Manager Server" permissions.
 
-![demo del generador](https://raw.githubusercontent.com/codedex-io/projects/main/projects/generate-a-blog-with-openai/generator-demo.gif)
+## [#](https://www.codedex.io/projects/build-a-discord-bot-with-python#how-does-a-discord-bot-work) How Does a Discord Bot Work
 
-_Quién sabe, tal vez todo este proyecto fue escrito por el generador que estamos a punto de crear. 👀_
+First, let's zoom out a bit and think about this question: "What does it mean to code a Discord Bot?" Simply put, a bot is nothing more than a computer program that performs some useful actions.
 
-## [#](https://www.codedex.io/projects/generate-a-blog-with-openai#what-is-gpt-3) ¿Qué es GPT-3?
+Because Discord wants bots to be able to do useful things, they have allowed developers to access parts of its system in their code, such as automatically responding to messages or helping with the server's admin functions (e.g., check out these [popular Discord Bots](https://top.gg/list/top)).
 
-[GPT-3](https://en.wikipedia.org/wiki/GPT-3) es un modelo de IA lanzado por OpenAI en 2020. Un modelo de IA es un programa entrenado en un montón de datos para realizar una tarea específica. En este caso, GPT-3 fue entrenado para hablar como un ser humano y predecir lo que viene después dado el contexto de una oración, con su conjunto de datos de entrenamiento de 45 terabytes de texto (!) de internet.
+Today, we're focused on getting our bot to read and write messages, so let's see how that works.
 
-> Como referencia, si tuviera que seguir escribiendo hasta que su papel alcance los 45 terabytes de tamaño, tendría que escribir [22.500.000.000](https://www.techtarget.com/searchstorage/definition/How-many-bytes-for) páginas de texto sin formato.
+![Drawing of server diagram](https://raw.githubusercontent.com/codedex-io/projects/main/projects/build-a-discord-bot-with-python/sketch.png)
 
-Dado que GPT-3 fue entrenado en datos de Internet, sabe lo que Internet sabe (no todo, por supuesto). Esto significa que si tuviéramos que dar GPT-3 una oración, sería capaz de predecir lo que viene después en esa oración con alta precisión, en base a todo el texto que se utilizó para entrenarla.
+From the crude drawing above (I'm an engineer, not an artist), we can see how users and bots connect to the Discord backend. Each user interacts with the Discord backend to write and read messages. Then, the Discord backend servers will broadcast an event to any program listening that a new message has been posted. All we have to do is write our program to respond to message events (named **bot.py** here) and connect it to the Discord backend by using their API.
 
-Ahora sabemos con qué trabajaremos, ¡construyamos el programa!
+> API (Application Programming Interface) is just a fancy terminology to define how one program talks to another program. In our case, Discord's API allows us to read and send messages to its backend servers.
 
-## [#](https://www.codedex.io/projects/generate-a-blog-with-openai#setting-up) Configuración
+First, we'll have to create and register our bot from Discord's Developer Portal.
 
-### [##](https://www.codedex.io/projects/generate-a-blog-with-openai#openai-account) Cuenta OpenAI
+## [#](https://www.codedex.io/projects/build-a-discord-bot-with-python#setting-up-discord-developer-portal) Setting Up Discord Developer Portal
 
-Antes de hacer algo, necesitamos un [OpenAI](https://openai.com/api) cuenta. Necesitaremos esto para acceder a una clave API para usar GPT-3. Tenga en cuenta que OpenAI ya no ofrece créditos gratuitos, por lo que deberá comprar al menos 5 dólares en créditos para comenzar a usar la API.
+We'll be creating and registering our Discord Application inside the Developer Portal. Then, we will create a Bot for the application and get the required permissions.
 
-> [API (Interfaz de Programación de Aplicaciones)](https://en.wikipedia.org/wiki/API) es una forma para que dos computadoras se comuniquen entre sí. Piense en ello como dos amigos enviando mensajes de texto de un lado a otro. Una clave API es un código que recibimos para acceder a la API. Piense en ello como una contraseña importante, ¡así que no la comparta con otros!
+### [##](https://www.codedex.io/projects/build-a-discord-bot-with-python#step-1-go-to-developer-portal) Step 1. Go to Developer Portal
 
-Ir a [www.en.com](http://www.openai.com/) y regístrese para obtener una cuenta OpenAI.
+Visit [https://discord.com/developers/applications](https://discord.com/developers/applications) and sign in if you haven't already.
 
-Después de crear una cuenta, haga clic en la imagen de su perfil en la parte superior derecha, luego haga clic en "Ver claves API" para acceder a su clave API. Deberías ver [esta página](https://beta.openai.com/account/api-keys) y debería verse como:
+### [##](https://www.codedex.io/projects/build-a-discord-bot-with-python#step-2-create-a-new-application) Step 2. Create a New Application
 
-![Clave API](https://raw.githubusercontent.com/codedex-io/projects/main/projects/generate-a-blog-with-openai/api-key.png)
+To let Discord know we're going to be connecting to their backend servers, we need to register an application and set up the required permissions.
 
-Ahora que sabemos dónde se encuentra la clave API, tengamos en cuenta para más adelante.
+Click "New Application" on the top right.
 
-### [##](https://www.codedex.io/projects/generate-a-blog-with-openai#python-setup) Configuración de Python
+![Create Application](https://raw.githubusercontent.com/codedex-io/projects/main/projects/build-a-discord-bot-with-python/screenshot1.png)
 
-Para este proyecto, necesitaremos [Python 3](https://www.python.org/downloads/) y [pip](https://pip.pypa.io/en/stable/) (instalador de paquetes) instalado.
+Next, give your application a name. Here, we are calling ours MemeBot:
 
-Suponiendo que tenemos esos dos instalados, abramos el editor de código de nuestra elección (recomendamos [código VS](https://code.visualstudio.com/)) y crear un nuevo archivo llamado **blog\_generador.py**.
+![Create new bot](https://raw.githubusercontent.com/codedex-io/projects/main/projects/build-a-discord-bot-with-python/screenshot2.png)
 
-**Nota**: Puede nombrar este archivo cualquier cosa excepto **openai.p**, ya que el nombre chocará con un paquete que instalaremos.
+### [##](https://www.codedex.io/projects/build-a-discord-bot-with-python#step-3-add-a-bot-to-your-application) Step 3. Add a Bot to Your Application
 
-## [#](https://www.codedex.io/projects/generate-a-blog-with-openai#beginning-the-project) Comenzando el Proyecto
+Find the "Bot" tab in the left panel:
 
-En el centro de este proyecto, todo lo que haremos es enviar datos con instrucciones a un servidor propiedad de OpenAI, luego recibir una respuesta de ese servidor y mostrarla.
+![Add Bot](https://raw.githubusercontent.com/codedex-io/projects/main/projects/build-a-discord-bot-with-python/screenshot3.png)
 
-### [##](https://www.codedex.io/projects/generate-a-blog-with-openai#install-openai) Instalar openai
+And click "Add Bot":
 
-Interactuaremos con el modelo GPT-3 usando un paquete python llamado `openai`. Este paquete consta de métodos que pueden conectarse a Internet y otorgarnos acceso al modelo GPT-3 alojado por OpenAI, la empresa.
+![Add Bot 2](https://raw.githubusercontent.com/codedex-io/projects/main/projects/build-a-discord-bot-with-python/screenshot4.png)
 
-Para instalar `openai`, todo lo que tenemos que hacer es ejecutar el siguiente comando en nuestro terminal:
+### [##](https://www.codedex.io/projects/build-a-discord-bot-with-python#step-4-get-the-token-for-your-application) Step 4. Get the Token for Your Application
 
-    pip install openai
+This step is important because we'll need this Token for later. This Token is similar to a password for your application. Anybody who has this can control it. (So make sure to never share your bot token with anyone, or upload it on GitHub by mistake!)
+
+Click "Reset Token", write it down somewhere safe and definitely don't put it in any public place.
+
+![Reset Token](https://raw.githubusercontent.com/codedex-io/projects/main/projects/build-a-discord-bot-with-python/screenshot5.png)
+
+Lastly, while we're still on the "Bot" tab, scroll down until you find a section about "Privileged Gateway Intents." In order for our Discord bot to receive messages, we'll need to toggle the "Message Content Intent" under this section:
+
+![enable message content intent](https://raw.githubusercontent.com/codedex-io/projects/main/projects/build-a-discord-bot-with-python/screenshot11.png)
+
+Turning this on in the developer portal will allow us to properly set up our bot in the code later in this project.
+
+### [##](https://www.codedex.io/projects/build-a-discord-bot-with-python#step-5-invite-application-to-your-server) Step 5. Invite Application to Your Server
+
+Now that we've set up our first application, we have to create an invite, to get our bot into our Discord server. To do that we can click URL Generator and select the following permissions. In the screenshot below, we are telling Discord to create an invitation link for our application with the scope "Bot" and that bot should be able to "Send Messages." (Note: Be careful with granting the all-powerful "Administrator" permission to your bot).
+
+![set up permissions](https://raw.githubusercontent.com/codedex-io/projects/main/projects/build-a-discord-bot-with-python/screenshot6.png)  
+![get the invite link](https://raw.githubusercontent.com/codedex-io/projects/main/projects/build-a-discord-bot-with-python/screenshot7.png)
+
+This is the link to invite our application (Discord bot) into a Discord server. Copy and paste this link into another tab in your browser and invite the bot into the Discord server that you want.
+
+![invite the bot](https://raw.githubusercontent.com/codedex-io/projects/main/projects/build-a-discord-bot-with-python/screenshot8.png)
+
+You can confirm if this worked by checking for this message in your Discord server.
+
+![invite success](https://raw.githubusercontent.com/codedex-io/projects/main/projects/build-a-discord-bot-with-python/screenshot9.png)
+
+Alright, now that we’ve set up our coding environment and got the necessary permissions from Discord for our new application, let’s write some code.
+
+## [#](https://www.codedex.io/projects/build-a-discord-bot-with-python#writing-the-python-code) Writing the Python Code
+
+### [##](https://www.codedex.io/projects/build-a-discord-bot-with-python#installing-discordpy) Installing discord.py
+
+The code that we will write, will be responsible for the creation of the bot that will connect to the Discord backend using Discord APIs.
+
+The complicated part about writing this program is how we're going to interact with the Discord API. While we can read the [API documentation](https://discord.com/developers/docs/intro) and send HTTP requests directly to Discord, we have an easier way.
+
+We'll be using a Python package called [discord.py](https://discordpy.readthedocs.io/en/stable/) which is a simple wrapper around the Discord API. A wrapper provides a way to access an API through a particular programming language, in this case, Python!
+
+If you are using Mac, run the following command in the Terminal to install it:
+
+    python3 -m pip install -U discord.py
     
 
-Ahora podemos usar este paquete importándolo a nuestro **blog\_generador.py** archivo como así:
+If you are using Windows, then the following command should be used instead:
 
-    import openai
+    py -3 -m pip install -U discord.py
     
 
-### [##](https://www.codedex.io/projects/generate-a-blog-with-openai#authorize-api-key) Autorizar API Key
+What did we just do here? We just installed a Python package from [pip](https://pypi.org/project/pip) the package installer, which is just another way of saying we downloaded code that someone kindly wrote and uploaded to a public repository.
 
-Antes de que podamos trabajar con GPT-3, debemos establecer nuestra clave API en el `openai` módulo. Recuerde, la clave API es lo que nos da acceso a GPT-3; nos autoriza y dice que se nos permite usar esta API.
+### [##](https://www.codedex.io/projects/build-a-discord-bot-with-python#log-into-the-discord-server-with-the-bot) Log Into the Discord Server with the Bot
 
-Podemos establecer nuestra clave API extendiendo un método en el `openai` módulo llamado `api_key`:
+Let’s create a new file called **bot.py** in a new directory. This is the main file where we'll code the logic to make our Discord bot. Now paste the following code into it:
 
-    openai.api_key = 'Your_API_Key'
+    import discord
+    
+    class MyClient(discord.Client):
+      async def on_ready(self):
+        print('Logged on as {0}!'.format(self.user))
+    
+    intents = discord.Intents.default()
+    intents.message_content = True
+    
+    client = MyClient(intents=intents)
+    client.run('Your Token Here') # Replace with your own token.
     
 
-El método tomará la clave API como una cadena. Recuerde, su clave API se encuentra en su [Cuenta openAI](https://beta.openai.com/account/api-keys).
+Let’s go over this block of code line by line.
 
-Hasta ahora, el código debería verse así:
-
-    import openai
+    import discord
     
-    openai.api_key = 'sk-jAjqdWoqZLGsh7nXf5i8T3BlbkFJ9CYRk' # Fill in your own key
-    
-
-## [#](https://www.codedex.io/projects/generate-a-blog-with-openai#the-core-function) La Función Central
-
-Ahora que tenemos acceso a GPT-3, podemos llegar a la carne de la aplicación, que está creando una función que toma un mensaje como entrada del usuario y devuelve un párrafo sobre ese mensaje.
-
-Esa función se verá así:
-
-    def generate_blog(paragraph_topic):
-      response = openai.completions.create(
-        model = 'gpt-3.5-turbo-instruct',
-        prompt = 'Write a paragraph about the following topic. ' + paragraph_topic,
-        max_tokens = 400,
-        temperature = 0.3
-      )
-    
-      retrieve_blog = response.choices[0].text
-    
-      return retrieve_blog
+    class MyClient(discord.Client):
+      async def on_ready(self):
+        print('Logged on as {0}!'.format(self.user))
     
 
-Desglosemos esta función y veamos qué está pasando aquí.
+First, we've imported the `discord.py` package that we just installed and created our own class `MyClient` which we will use to interact with the Discord API. We create this class by extending from the base class `discord.Client`. This base class already has methods to respond to common events. For example, the `on_ready()` function above will be called when the Discord bot's login is successful.
 
-Primero, definimos una función llamada `generate_blog()`. Hay un solo parámetro llamado `paragraph_topic`, que será el tema utilizado para generar el párrafo:
+`discord.py` works around the concept of events. There are other types of events (e.g., messages) that we will see later, but for now here's the definition of events from their website:
 
-    def generate_blog(paragraph_topic):
-      # The code inside
+> An event is something you listen for and then respond to. For example, when a message happens, you will receive an event about it that you can respond to.
+
+The next two lines of code sets the `intents` that will be passed into a given instance of `MyClient`. These are the settings for what our Discord bot can access. Since we've assigned the `default()` behavior for our bot, we'll need to explicitly allow it to interact with messages (i.e., `message_content=True`):
+
+    intents = discord.Intents.default()
+    intents.message_content = True
     
 
-Y entremos en la función. Aquí está la primera parte:
+Finally, our last two lines of code instantiates the `MyClient` class and calls `run`, which is the main way to start the client. The client will use the given token (which you should have saved from before) to authenticate itself to the Discord backend servers.
 
-    def generate_blog(paragraph_topic):
-      response = openai.completions.create(
-        model = 'gpt-3.5-turbo-instruct',
-        prompt = 'Write a paragraph about the following topic. ' + paragraph_topic,
-        max_tokens = 400,
-        temperature = 0.3
-      )
+    client = MyClient(intents=intents)
+    client.run('Your Token Here') # Replace with your own token
     
 
-Esta es la mayor parte de nuestra función y donde usamos GPT-3. Creamos una variable llamada `response` para almacenar la respuesta generada por la salida de la `completions.create()` llamada de método en nuestro `openai` módulo.
+### [##](https://www.codedex.io/projects/build-a-discord-bot-with-python#running-the-bot) Running the Bot
 
-GPT-3 tiene diferentes puntos finales para propósitos específicos, pero para nuestro objetivo, usaremos el [finalización](https://beta.openai.com/docs/api-reference/completions) punto final. El punto final de finalización generará texto dependiendo del mensaje proporcionado. Puede leer sobre los diferentes puntos finales en el [documentación](https://beta.openai.com/docs/introduction).
+You can run this code by typing in the following in your terminal.
 
-Ahora que tenemos acceso al punto final de finalización, debemos especificar algunas cosas, la primera es:
-
-`model`: El parámetro del modelo tomará en el modelo que queremos utilizar. OpenAI ofrece varios modelos con diferentes capacidades. Para este tutorial, estamos usando `gpt-3.5-turbo-instruct` para proporcionar ejemplos claros y confiables.
-
-La sintaxis y las capacidades varían entre los modelos. Puede leer más sobre los modelos disponibles en el [documentación](https://platform.openai.com/docs/models).
-
-    prompt = 'Write a paragraph about the following topic. ' + paragraph_topic,
+    python3 bot.py
     
 
-`prompt`: Aquí es donde diseñamos las instrucciones principales para GPT-3. Este parámetro tomará en nuestro `paragraph_topic` argumento, pero antes de eso, podemos decirle a GPT-3 qué hacer con ese argumento. Actualmente, estamos instruyendo a GPT-3 a `Write a paragraph about the following topic`. GPT-3 hará todo lo posible para seguir esta instrucción y devolvernos un párrafo.
+As long as you keep this program running, your Discord bot will be online.
 
-GPT-3 es muy flexible; si la cadena inicial se cambia a `Write a blog outline about the following topic`éste nos dará un esquema en lugar de un párrafo normal. Más tarde puede jugar con esto diciéndole al modelo exactamente lo que debería generar y viendo qué respuestas interesantes obtiene.
+If you see this output in your terminal, then your Discord bot has successfully logged into your Discord server.
 
-    max_tokens = 400
+    Logged on as MemeBot#3995!
     
 
-`tokens`: El número de token decide cuánto tiempo será la respuesta. Un número de token más grande producirá una respuesta más larga. Al establecer un número específico, estamos diciendo que la respuesta no puede superar este tamaño de token. La forma en que se cuentan los tokens para una respuesta es un poco compleja, pero puede leer esto [artículo](https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count-them) por OpenAI que explica cómo se calcula el tamaño del token.
+### [##](https://www.codedex.io/projects/build-a-discord-bot-with-python#responding-to-messages) Responding to Messages
 
-Aproximadamente 75 palabras son aproximadamente 100 fichas. Un párrafo tiene 300 palabras en promedio. Entonces, 400 tokens tienen aproximadamente la longitud de un párrafo normal. El modelo `gpt-3.5-turbo-instruct` tiene un límite de token de 4.096.
+Next, we want our bot to read messages in a Discord channel and respond to them.
 
-    temperature = 0.3
+Add the `.on_message()` method to the `MyClient` class like the following:
+
+    async def on_message(self, message):
+      if message.author == self.user:
+        return
+    
+      if message.content.startswith('$hello'):
+        await message.channel.send('Hello World!')
     
 
-`temperature`: La temperatura determina la aleatoriedad de una respuesta. Una temperatura más alta producirá una respuesta más creativa, mientras que una temperatura más baja producirá una respuesta mejor definida.
+The `.on_message()` method gets called automatically anytime there is a new message in a channel where our bot is located. In our method:
 
--   `0`: La misma respuesta cada vez.
--   `1`: Una respuesta diferente cada vez, incluso si es el mismo mensaje.
+-   We are first checking `if message.author == self.user`, if the bot is the one sending the message in the chat. We don’t want the bot to keep responding to its own messages.
+-   Then, we have some code to respond to a special keyword `$hello`.
 
-Hay muchos otros campos que podemos especificar para ajustar aún más el modelo, que puede leer en el [documentación](https://beta.openai.com/docs/api-reference/completions/create), pero por ahora, estos son los cuatro campos con los que debemos preocuparnos.
+Let's try it out. Run the command `python3 bot.py` to start our program.
 
-Ahora que tenemos nuestra configuración de modelo, podemos ejecutar nuestra función y sucederán las siguientes cosas:
+Now, add Memebot to any channel and type the word `$hello` in that channel and see what happens:
 
-1.  Primero, el `openai` el módulo tomará nuestra clave API, junto con los campos que especificamos en el `response` variable, y hacer una solicitud al punto final de finalización.
-2.  OpenAI verificará que se nos permite usar GPT-3 verificando nuestra clave API.
-3.  Después de la verificación, GPT-3 utilizará los campos especificados para producir una respuesta.
-4.  La respuesta producida se devolverá en forma de un objeto y se almacenará en el `response` variable.
+![Discord example](https://raw.githubusercontent.com/codedex-io/projects/main/projects/build-a-discord-bot-with-python/screenshot10.png)
 
-Ese objeto devuelto se verá así:
+We've successfully programmed our bot to log into Discord and respond to our messages. But can we go further?
+
+### [##](https://www.codedex.io/projects/build-a-discord-bot-with-python#how-to-respond-with-memes) How to Respond with Memes
+
+What if instead of responding with a text message, the bot responds with memes? Well that sounds like a lot of work.. buuut the cool thing about programming is that we can reuse other people’s work (yay for open source).
+
+Check out this Github repository: [https://github.com/D3vd/Meme\_Api](https://github.com/D3vd/Meme_Api). This API returns a [JSON](https://en.wikipedia.org/wiki/JSON) response containing information about random memes from Reddit. Hmm, let’s see how it works by visiting this URL: [https://meme-api.com/gimme](https://meme-api.com/gimme).
+
+Here is the response that I got:
 
     {
-      "choices": [
-        {
-          "finish_reason": "stop",
-          "index": 0,
-          "logprobs": null,
-          "text": "\n\nPython is a programming language with many features, such as an intuitive syntax and powerful data structures. It was created in the late 1980s by Guido van Rossum, with the goal of providing a simple yet powerful scripting language. Python has since become one of the most popular programming languages, with a wide range of applications in fields such as web development, scientific computing, and artificial intelligence."
-        }
+      "postLink": "https://redd.it/w0teq0",
+      "subreddit": "me_irl",
+      "title": "me_irl",
+      "url": "https://i.redd.it/ztpkxx6yl0c91.png",
+      "nsfw": false,
+      "spoiler": false,
+      "author": "ozgonngu",
+      "ups": 110,
+      "preview": [
+        "https://preview.redd.it/ztpkxx6yl0c91.png?width=108\u0026crop=smart\u0026auto=webp\u0026s=e3db2a1ed5ee73480224b55b16fcb38925ea9095",
+        "https://preview.redd.it/ztpkxx6yl0c91.png?width=216\u0026crop=smart\u0026auto=webp\u0026s=aaec73a28c4c0b2bc47f4f9722be2fdb8ba95893",
+        "https://preview.redd.it/ztpkxx6yl0c91.png?width=320\u0026crop=smart\u0026auto=webp\u0026s=90495a39d05f6d9d8975fb776887c08f65ece2c4",
+        "https://preview.redd.it/ztpkxx6yl0c91.png?width=640\u0026crop=smart\u0026auto=webp\u0026s=b291abfb8f85b5826f001dee881570e694bdb46c",
+        "https://preview.redd.it/ztpkxx6yl0c91.png?width=960\u0026crop=smart\u0026auto=webp\u0026s=7afc3f2532c7017a0045ae50777a18a2e452183e",
       ],
-      "created": 1664302504,
-      "id": "cmpl-5v9OiMOjRyoyypRQWAdpyAtjtgVev",
-      "model": "gpt-3.5-turbo-instruct",
-      "object": "text_completion",
-      "usage": {
-        "completion_tokens": 80,
-        "prompt_tokens": 19,
-        "total_tokens": 99
-      }
     }
     
 
-Weirre proporcionó toneladas de información sobre la respuesta, pero lo único que nos importa es la `text` campo que contiene texto generado.
+It looks like the `url` field here contains the link for the meme's image. How about we have our bot respond to user's messages with this image?
 
-Podemos acceder al valor en el `text` campo como así:
+### [##](https://www.codedex.io/projects/build-a-discord-bot-with-python#integrating-the-meme-api) Integrating the Meme API
 
-    retrieve_blog = response.choices[0].text
+Let's paste these lines of code to the top of the file.
+
+    import requests
+    import json
+    
+    def get_meme():
+      response = requests.get('https://meme-api.com/gimme')
+      json_data = json.loads(response.text)
+      return json_data['url']
     
 
-Finalmente, devolvemos el `retrieve_blog` variable que contiene el párrafo que acabamos de sacar del diccionario.
+`requests` package allows us to make HTTP requests to any URL. In this case we're calling the GET method to the URL that will give us the meme data.
 
-    return retrieve_blog
+`json` package allows us to read JSON data. This is useful since most data passed around on the web is in the JSON format, like the JSON response we saw above.
+
+We need to install the `requests` package to import it. Run the following command:
+
+    python3 -m pip install requests
     
 
-¡Whoah! Tomemos un momento y respiremos. Eso fue mucho lo que acabamos de cubrir. Vamos a darnos una palmadita en la espalda, ya que hemos terminado en un 90% con la aplicación.
+Now all we need to do is call `get_meme()` inside our bot's `on_message()` method. Let's also change the keyword from `$hello` to `$meme` since it's more fitting. Your code should look like this:
 
-Podemos probar para ver si nuestro código funciona hasta ahora imprimiendo el `generate_blog()` función que acabamos de crear, dándole un tema sobre el que escribir y viendo la respuesta que recibimos.
-
-    print(generate_blog('Why NYC is better than your city.'))
+    import discord
+    import requests
+    import json
+    
+    def get_meme():
+      response = requests.get('https://meme-api.com/gimme')
+      json_data = json.loads(response.text)
+      return json_data['url']
+    
+    class MyClient(discord.Client):
+      async def on_ready(self):
+        print('Logged on as {0}!'.format(self.user))
+    
+      async def on_message(self, message):
+        if message.author == self.user:
+          return
+        if message.content.startswith('$meme'):
+          await message.channel.send(get_meme())
+    
+    intents = discord.Intents.default()
+    intents.message_content = True
+    
+    client = MyClient(intents=intents)
+    client.run('Your Token Here') # Replace with your own token
     
 
-Aquí está el código completo hasta ahora:
+Time to test it out!
 
-    import openai
-    
-    openai.api_key = 'sk-jAjqdWoqZLGsh7nXf5i8T3BlbkFJ9CYRk' # Fill in your own key
-    
-    def generate_blog(paragraph_topic):
-      response = openai.completions.create(
-        model = 'gpt-3.5-turbo-instruct',
-        prompt = 'Write a paragraph about the following topic. ' + paragraph_topic,
-        max_tokens = 400,
-        temperature = 0.3
-      )
-    
-      retrieve_blog = response.choices[0].text
-    
-      return retrieve_blog
-    
-    print(generate_blog('Why NYC is better than your city.'))
-    
+Just remember you need to close and restart your program. Press control+c to close the currently running program in the terminal and then, run `python3 bot.py` again.
 
-Y boom, después de 2-3 segundos, debería escupir un párrafo como este:
+The moment of truth...
 
-![Salida: NYC](https://raw.githubusercontent.com/codedex-io/projects/main/projects/generate-a-blog-with-openai/output-nyc.png)
+![Toad Meme](https://raw.githubusercontent.com/codedex-io/projects/main/projects/build-a-discord-bot-with-python/final.gif)
 
-Intenta ejecutar el código un par de veces más; ¡la salida debe ser diferente cada vez! 🤯
+Success! 🎉
 
-## [#](https://www.codedex.io/projects/generate-a-blog-with-openai#multiple-paragraphs) Párrafos Múltiples
+## [#](https://www.codedex.io/projects/build-a-discord-bot-with-python#final-words) Final Words
 
-En este momento, si ejecutamos nuestro código, solo podremos generar un párrafo de texto. Recuerde, estamos tratando de crear un generador de blogs, y un blog tiene múltiples secciones, con cada párrafo teniendo un tema diferente.
+That's all it takes to set up and code a Discord bot in Python! Just a note: the bot will respond to you as long as the program is kept running. If you close your terminal or turn off your computer, it will no longer be running. If you want to keep the program running forever, we’ll have to deploy it to another computer in the cloud. However, that is a lesson for another day.
 
-Agreguemos algún código adicional para generar tantos párrafos como queramos, con cada párrafo discutiendo un tema diferente:
-
-    keep_writing = True
-    
-    while keep_writing:
-      answer = input('Write a paragraph? Y for yes, anything else for no. ')
-      if (answer == 'Y'):
-        paragraph_topic = input('What should this paragraph talk about? ')
-        print(generate_blog(paragraph_topic))
-      else:
-        keep_writing = False
-    
-
-Primero, definimos una variable llamada `keep_writing`, para usar como un valor booleano para lo siguiente `while` bucle.
-
-En el `while` loop, creamos un `answer` variable que tomará una entrada del usuario utilizando el incorporado `input()` función.
-
-Luego creamos un `if` declaración que continuará el bucle o detendrá el bucle.
-
--   Si la entrada del usuario es `Y`, luego le preguntaremos al usuario sobre qué tema desea generar texto, almacenando ese valor en una variable llamada `paragraph_topic`. Luego ejecutaremos e imprimiremos el `generate_blog()` función usando el `parapgraph_topic` variable como argumento.
--   De lo contrario, detendremos el bucle asignando el `keep_writing` variable a `False`.
-
-¡Con eso completo, ahora podemos escribir tantos párrafos como queramos ejecutando el programa una vez!
-
-### [##](https://www.codedex.io/projects/generate-a-blog-with-openai#rate-limit) Límite de Tasa
-
-Ya que estamos usando un `while` loop, tenemos el potencial de ser limitado en la tasa.
-
-> [Límite de tasa](https://en.wikipedia.org/wiki/Rate_limiting) es el número de llamadas API que una aplicación o usuario puede hacer dentro de un período de tiempo determinado.
-
-Esto normalmente se hace para proteger la API del abuso o [DoS](https://en.wikipedia.org/wiki/Denial-of-service_attack) ataques.
-
-Para GPT-3, el límite de tasa es de 20 solicitudes por minuto. Mientras no ejecutemos la función tan rápido, estaremos bien. Pero en un raro caso de que ocurra, GPT-3 dejará de producir respuestas y nos hará esperar un minuto para producir otra respuesta.
-
-### [##](https://www.codedex.io/projects/generate-a-blog-with-openai#credit-limit) Límite de Crédito
-
-En este punto, si ha estado jugando con la API sin parar, existe la posibilidad de que haya excedido su límite de crédito comprado. El siguiente error se lanza cuando eso sucede:
-
-    openai.error.RateLimitError:  
-    You exceeded your current quota, please check your plan and billing details.
-    
-
-Si ese es el caso, ve a OpenAI's [Resumen de facturación](https://platform.openai.com/settings/organization/billing/overview) página y compra créditos adicionales.
-
-Tomemos otro respiro. ¡Ya casi terminamos!
-
-## [#](https://www.codedex.io/projects/generate-a-blog-with-openai#securing-our-app) Asegurando Nuestra App
-
-Pensemos en esto por un minuto. Creamos esta increíble aplicación y queremos compartirla con el mundo, ¿verdad? Bueno, cuando lo implementamos en la web o lo compartimos con nuestros amigos, podrán ver cada pieza de código en el programa. ¡Ahí es donde radica el problema!
-
-Al comienzo de este artículo, creamos una cuenta con OpenAI y se nos asignó una clave API. Recuerde, esta clave API es lo que nos da acceso a GPT-3. Dado que GPT-3 es un servicio de pago, la clave API también se utiliza para rastrear el uso y cobrarnos en consecuencia. Entonces, ¿qué sucede cuando alguien conoce nuestra clave API? Podrán usar el servicio con nuestra llave, y seremos los que cobramos, ¡potencialmente miles de dólares!
-
-Para protegernos, necesitamos ocultar la clave API en nuestro código pero aún así poder usarla. Veamos cómo podemos hacer eso.
-
-### [##](https://www.codedex.io/projects/generate-a-blog-with-openai#install-python-dotenv) Instalar `python-dotenv`
-
-[`python-dotenv`](https://pypi.org/project/python-dotenv)es un paquete que nos permite crear y utilizar variables de entorno sin tener que configurarlas manualmente en el sistema operativo.
-
-> Las variables de entorno son variables cuyos valores se establecen fuera del programa, generalmente en el sistema operativo.
-
-Podemos instalar `python-dotenv` ejecutando el siguiente comando en el terminal:
-
-    pip install python-dotenv
-    
-
-### [##](https://www.codedex.io/projects/generate-a-blog-with-openai#env-file) Archivo .env
-
-Luego, en el directorio raíz de nuestro proyecto, cree un archivo llamado **.env**. Este archivo mantendrá nuestra variable de entorno.
-
-Abre el **.env** archiva y crea una variable como así:
-
-    API_KEY=<Your_API_Key>
-    
-
-La variable incluirá nuestra clave API sin comillas ni espacios. Recuerde nombrar esta variable como `API_KEY` sólo.
-
-### [##](https://www.codedex.io/projects/generate-a-blog-with-openai#python-file) Archivo Python
-
-Ahora que tenemos nuestro conjunto de variables de entorno, abramos el **blog\_generador.py** archiva y pega este código debajo `import openai`.
-
-    from dotenv import dotenv_values
-    
-    config = dotenv_values(".env")
-    
-
-Primero, hemos importado un método llamado `dotenv_values` del módulo.
-
-El `dotenv_values()` tomará el camino hacia el **.env** archiva y devuélvanos un diccionario con todas las variables en el **.env** archivo. Luego creamos un `config` variable para mantener ese diccionario.
-
-Ahora, todo lo que tenemos que hacer es reemplazar la clave API expuesta con la variable de entorno en el `config` diccionario como así:
-
-    openai.api_key = config['API_KEY']
-    
-
-¡Eso es todo! Nuestra clave API ahora está segura y oculta del código principal.
-
-**Nota**: Si desea enviar su código a [GitHub](https://www.github.com/), no quieres empujar el **.env** archivo también. En el directorio raíz de su proyecto, cree un archivo llamado **.gitignore**, y en el archivo Git ignore, escriba `.env`. Esto evitará que el archivo sea rastreado por Git y finalmente empujado a GitHub.
-
-¡Con todo ese set y hecho, weizre terminado! ¡El código ahora debería verse así!
-
-**blog\_generador.py** archivo:
-
-    # Generate a Blog with OpenAI 📝
-    
-    import openai
-    from dotenv import dotenv_values
-    
-    config = dotenv_values('.env')
-    
-    openai.api_key = config['API_KEY']
-    
-    def generate_blog(paragraph_topic):
-      response = openai.completions.create(
-        model = 'gpt-3.5-turbo-instruct',
-        prompt = 'Write a paragraph about the following topic. ' + paragraph_topic,
-        max_tokens = 400,
-        temperature = 0.3
-      )
-      retrieve_blog = response.choices[0].text
-      return retrieve_blog
-    
-    keep_writing = True
-    
-    while keep_writing:
-      answer = input('Write a paragraph? Y for yes, anything else for no. ')
-      if (answer == 'Y'):
-        paragraph_topic = input('What should this paragraph talk about? ')
-        print(generate_blog(paragraph_topic))
-      else:
-        keep_writing = False
-    
-
-**.env** archivo:
-
-    API_KEY=sk-jAjqdWoqZLGsh7nXf5i8T3BlbkFJ9CYRk
-    
-
-## [#](https://www.codedex.io/projects/generate-a-blog-with-openai#finish-line) Línea de Acabado
-
-¡Felicidades, acabas de crear un generador de blogs con OpenAI y Python! A lo largo del proyecto, aprendimos cómo usar GPT-3 para generar un párrafo, usar un `while` bucle para crear múltiples párrafos y proteger nuestra aplicación con un **.env** archivo. 🙌
-
-La IA se está expandiendo rápidamente, y los primeros en utilizarla adecuadamente a través de servicios como GPT-3 se convertirán en los inovadores en el campo. Espero que este proyecto te ayude a entenderlo un poco más.
-
-¡Y por último, nos encantaría ver lo que construyes con este tutorial! Etiqueta [@codedex\_io](https://twitter.com/intent/tweet?text=Generate+a+Blog+with+OpenAI&hashtags=Python&hashtags=Codedex+@codedex_io) y [@openai](https://twitter.com/openai) ¡en Twitter si haces algo genial!
+Hope you enjoyed the tutorial. If you have any questions, you can DM me on twitter at [@hongjjeon](https://twitter.com/hongjjeon).
 
 
 
